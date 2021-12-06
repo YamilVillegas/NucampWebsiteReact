@@ -1,34 +1,16 @@
 import React, { Component } from 'react';
-import Directory from './DirectoryComponent';
-import Header from './HeaderComponent';
-import Footer from './FooterComponent';
 import Home from './HomeComponent';
-import Contact from './ContactComponent';
-import About from './AboutComponent';
-import CampsiteInfo from './CampsiteInfoComponent'
 import { Switch, Route, Redirect, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
+import Directory from './DirectoryComponent';
+import CampsiteInfo from './CampsiteInfoComponent';
+import Header from './HeaderComponent';
+import Footer from './FooterComponent';
+import Contact from './ContactComponent';
+import About from './AboutComponent';
+import { addComment, postComment, postFeedback, fetchCampsites, fetchComments, fetchPromotions, fetchPartners } from '../redux/ActionCreators';
 import { actions } from 'react-redux-form';
-import { postComment, fetchCampsites, fetchComments, fetchPromotions } from '../redux/ActionCreators';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
-
-
-const mapStateToProps = state => {
-    return {
-        campsites: state.campsites,
-        comments: state.comments,
-        partners: state.partners,
-        promotions: state.promotions
-    };
-};
-
-const mapDispatchToProps = {
-    postComment: (campsiteId, rating, author, text) => (postComment(campsiteId, rating, author, text)),
-    fetchCampsites: () => (fetchCampsites()),
-    resetFeedbackForm: () => (actions.reset('feedbackForm')),
-    fetchComments: () => (fetchComments()),
-    fetchPromotions: () => (fetchPromotions())
-};
 
 class Main extends Component {
 
@@ -36,6 +18,7 @@ class Main extends Component {
         this.props.fetchCampsites();
         this.props.fetchComments();
         this.props.fetchPromotions();
+        this.props.fetchPartners();
     }
 
     render() {
@@ -49,10 +32,12 @@ class Main extends Component {
                     promotion={this.props.promotions.promotions.filter(promotion => promotion.featured)[0]}
                     promotionLoading={this.props.promotions.isLoading}
                     promotionErrMess={this.props.promotions.errMess}
-                    partner={this.props.partners.filter(partner => partner.featured)[0]}
+                    partner={this.props.partners.partners.filter(partner => partner.featured)[0]}
+                    partnerLoading={this.props.partners.isLoading}
+                    partnerErrMess={this.props.partners.errMess}
                 />
             );
-        };
+        }
 
         const CampsiteWithId = ({match}) => {
             return (
@@ -76,7 +61,7 @@ class Main extends Component {
                             <Route path='/home' component={HomePage} />
                             <Route exact path='/directory' render={() => <Directory campsites={this.props.campsites} />} />
                             <Route path='/directory/:campsiteId' component={CampsiteWithId} />
-                           <Route exact path='/contactus' render={() => <Contact resetFeedbackForm={this.props.resetFeedbackForm} /> } />
+                            <Route exact path='/contactus' render={() => <Contact resetFeedbackForm={this.props.resetFeedbackForm} postFeedback={this.props.postFeedback} /> } />
                             <Route exact path='/aboutus' render={() => <About partners={this.props.partners} /> } />
                             <Redirect to='/home' />
                         </Switch>
@@ -87,5 +72,25 @@ class Main extends Component {
         );
     }
 }
+
+const mapStateToProps = state => {
+    return {
+        campsites: state.campsites,
+        comments: state.comments,
+        partners: state.partners,
+        promotions: state.promotions
+    };
+};
+
+const mapDispatchToProps = {
+    postComment: (campsiteId, rating, author, text) => (postComment(campsiteId, rating, author, text)),
+    addComment: (campsiteId, rating, author, text) => (addComment(campsiteId, rating, author, text)),
+    postFeedback: (feedback) => (postFeedback(feedback)),
+    fetchCampsites: () => (fetchCampsites()),
+    resetFeedbackForm: () => (actions.reset('feedbackForm')),
+    fetchComments: () => (fetchComments()),
+    fetchPromotions: () => (fetchPromotions()),
+    fetchPartners: () => (fetchPartners())
+};
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Main));
